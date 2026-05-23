@@ -115,7 +115,7 @@ func (c *Client) DeleteApp(index int) error {
 
 // CloseRunningApp closes the currently running streamed application.
 func (c *Client) CloseRunningApp() error {
-	_, err := c.doJSON("POST", "/api/apps/close", nil)
+	_, err := c.doJSON("POST", "/api/apps/close", struct{}{})
 	return err
 }
 
