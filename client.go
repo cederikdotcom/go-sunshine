@@ -120,10 +120,18 @@ func (c *Client) CloseRunningApp() error {
 }
 
 // ListClients returns paired Moonlight clients.
+// Sunshine v2025+ wraps the list: {"named_certs":[...],"status":true};
+// older builds returned a bare array. Accept both.
 func (c *Client) ListClients() ([]ClientInfo, error) {
 	data, err := c.doJSON("GET", "/api/clients/list", nil)
 	if err != nil {
 		return nil, err
+	}
+	var wrapped struct {
+		NamedCerts []ClientInfo `json:"named_certs"`
+	}
+	if err := json.Unmarshal(data, &wrapped); err == nil && wrapped.NamedCerts != nil {
+		return wrapped.NamedCerts, nil
 	}
 	var clients []ClientInfo
 	if err := json.Unmarshal(data, &clients); err != nil {
