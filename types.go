@@ -4,6 +4,10 @@ import "time"
 
 // StreamSession represents a single active streaming connection.
 type StreamSession struct {
+	// ID is unique within a SessionRegistry. Several sessions can share an
+	// AppName, because one body can serve the same experience to more than
+	// one head at a time.
+	ID          string
 	AppName     string
 	StartedAt   time.Time
 	EndedAt     *time.Time // nil if still active
