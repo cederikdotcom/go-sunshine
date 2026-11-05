@@ -77,7 +77,7 @@ func (c *Client) doJSON(method, path string, body any) ([]byte, error) {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))
+		return nil, &StatusError{Code: resp.StatusCode, Body: string(respBody)}
 	}
 	return respBody, nil
 }
