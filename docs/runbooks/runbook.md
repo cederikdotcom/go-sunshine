@@ -70,6 +70,35 @@ Sunshine uses a self-signed certificate. The client must be configured with `Ins
 
 Sunshine takes 10–30 seconds to start after a service restart. The SDK does not retry — callers should poll with a backoff until `ListApps` returns without error before issuing other calls.
 
+### Sunshine answered, but refused: do not call that unreachable
+
+A non-2xx reply comes back as a `*StatusError`, which carries the code:
+
+```go
+_, err := client.ListApps()
+var se *sunshine.StatusError
+if errors.As(err, &se) {
+    // Sunshine is RUNNING. It accepted the connection and replied.
+    if se.Unauthorized() {
+        // 401 or 403: the credentials are wrong. Session management is
+        // broken, the stream is not.
+    }
+} else if err != nil {
+    // No answer at all: refused, timed out, socket closed. Sunshine may be
+    // hung or down.
+}
+```
+
+Keep these apart in anything that acts on the result. A health check that
+treats both as "unreachable" will kill a healthy stream because a password was
+wrong. That is what happened to the three Mercator bodies on 2026-11-05: their
+district had no provider credentials, every `ListApps` returned 401, and the
+hydrabody watchdog read it as a hung video thread and killed each session about
+26 seconds in.
+
+`StatusError.Error()` is byte-identical to the untyped error used before
+`v0.1.4`, so log lines and greps built on the message still match.
+
 ## Releasing
 
 Tag the module with a semver tag — the Go module proxy picks it up automatically:
